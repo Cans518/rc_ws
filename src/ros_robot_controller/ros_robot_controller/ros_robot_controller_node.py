@@ -3,6 +3,8 @@
 # @Author: Aiden
 # @Date: 2023/08/28
 # stm32 ros2 package
+# @Last Modified by: Mzee
+# @Last Modified time: 2025/08/28
 import math
 import rclpy
 import signal
@@ -18,9 +20,18 @@ class RosRobotController(Node):
     def __init__(self, name):
         rclpy.init()
         super().__init__(name)
+
+        # 声明参数: 使用的端口
+        self.declare_parameter('serial_port', '/dev/ttyACM0') 
+        serial_port = self.get_parameter('serial_port').value
+
+        # 声明参数: 是否启用消息接收
+        self.declare_parameter('enable_reception', True)
+        enable_reception = self.get_parameter('enable_reception').value
         
-        self.board = Board()
-        self.board.enable_reception()
+        self.board = Board(device=serial_port)
+        if enable_reception:
+            self.board.enable_reception()
         signal.signal(signal.SIGINT, self.shutdown)
 
         # 声明参数
