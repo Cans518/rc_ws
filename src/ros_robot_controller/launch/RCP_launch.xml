@@ -1,0 +1,10 @@
+<launch>
+    <arg name="imu_frame"      default="imu_link"/>
+    <arg name="serial_port"    default="/dev/ttyACM0"/>
+    <arg name="enable_reception" default="true"/>
+    <node name="ros_robot_controller" pkg="ros_robot_controller" exec="ros_robot_controller" output="screen">
+        <param name="imu_frame"         value="$(var imu_frame)"/>
+        <param name="serial_port"       value="$(var serial_port)"/>
+        <param name="enable_reception"  value="$(var enable_reception)"/>
+    </node>
+</launch>
