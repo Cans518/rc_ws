@@ -12,13 +12,10 @@ from datetime import datetime, timedelta
 import asyncio
 from std_msgs.msg import UInt16
 from battery_soc import get_battery_status_mv
-try:
-    from fastapi import FastAPI, HTTPException
-    from fastapi.middleware.cors import CORSMiddleware
-    from pydantic import BaseModel
-    import uvicorn
-except ImportError:
-    pass  # 如果不使用 API 模式则忽略
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+import uvicorn
 
 class CommandModel(BaseModel):
     cmd: str
