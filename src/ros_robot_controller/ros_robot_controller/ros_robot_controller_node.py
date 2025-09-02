@@ -38,14 +38,14 @@ class RosRobotController(Node):
         self.declare_parameter('imu_frame', 'imu_link')
         self.IMU_FRAME = self.get_parameter('imu_frame').value
 
-        self.imu_pub = self.create_publisher(Imu, '~/imu_raw', 1)
-        self.joy_pub = self.create_publisher(Joy, '~/joy', 1)
-        self.sbus_pub = self.create_publisher(Sbus, '~/sbus', 1)
-        self.button_pub = self.create_publisher(ButtonState, '~/button', 1)
-        self.battery_pub = self.create_publisher(UInt16, '~/battery', 1)
-        self.create_subscription(LedState, '~/set_led', self.set_led_state, 1)
-        self.create_subscription(BuzzerState, '~/set_buzzer', self.set_buzzer_state, 1)
-        self.create_subscription(MotorsState, '~/set_motor', self.set_motor_state, 1)
+        self.imu_pub = self.create_publisher(Imu, '~/imu_raw', 1) # imu数据发布者
+        self.joy_pub = self.create_publisher(Joy, '~/joy', 1) # 手柄数据发布者
+        self.sbus_pub = self.create_publisher(Sbus, '~/sbus', 1) # sbus数据发布者
+        self.button_pub = self.create_publisher(ButtonState, '~/button', 1) # 按键数据发布者
+        self.battery_pub = self.create_publisher(UInt16, '~/battery', 1) # 电池电压数据发布者
+        self.create_subscription(LedState, '~/set_led', self.set_led_state, 1) # led状态订阅者
+        self.create_subscription(BuzzerState, '~/set_buzzer', self.set_buzzer_state, 1) # 蜂鸣器状态订阅者
+        self.create_subscription(MotorsState, '~/set_motor', self.set_motor_state, 1) # 电机状态订阅者
         self.create_subscription(SetBusServoState, '~/bus_servo/set_state', self.set_bus_servo_state, 1)
         self.create_service(GetBusServoState, '~/bus_servo/get_state', self.get_bus_servo_state)
         self.create_subscription(SetPWMServoState, '~/pwm_servo/set_state', self.set_pwm_servo_state, 1)

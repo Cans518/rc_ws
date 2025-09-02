@@ -57,3 +57,10 @@ qtcreator-*
 
 # Catkin custom files
 CATKIN_IGNORE
+
+# build 
+*.zsh
+*.bash
+*.ps1
+install/
+log/
