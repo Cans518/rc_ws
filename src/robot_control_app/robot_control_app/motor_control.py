@@ -6,11 +6,12 @@ from rclpy.parameter import Parameter
 from ros_robot_controller_msgs.msg import MotorsState, MotorState
 import socket
 import threading
+import numpy as np
 import json
 from datetime import datetime, timedelta
 import asyncio
-
-# FastAPI 相关导入（可选）
+from std_msgs.msg import UInt16
+from battery_soc import get_battery_status_mv
 try:
     from fastapi import FastAPI, HTTPException
     from fastapi.middleware.cors import CORSMiddleware
@@ -76,6 +77,26 @@ class MotorControl(Node):
             f"timeout={self.timeout.total_seconds()*1000:.0f}ms, "
             f"left_gain={self.left_gain}, right_gain={self.right_gain}"
         )
+
+        # --- 电池状态 ---
+        self.latest_battery_mv = None
+        self.battery_timestamp = None
+        self.battery_lock = threading.Lock()
+
+        self.battery_sub = self.create_subscription(
+            UInt16,
+            '/ros_robot_controller/battery',
+            self.battery_callback,
+            10
+        )
+        self.get_logger().info("Subscribed to '/ros_robot_controller/battery' for battery status.")
+
+    def battery_callback(self, msg: UInt16):
+        mv = msg.data
+        with self.battery_lock:
+            self.latest_battery_mv = mv
+            self.battery_timestamp = datetime.now()
+        self.get_logger().debug(f"Battery updated: {mv} mV")
 
     def udp_server(self, port):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -166,6 +187,30 @@ class MotorControl(Node):
                 "time_since_update_sec": elapsed,
                 "active": is_active,
                 "timeout_sec": self.timeout.total_seconds()
+            }
+        
+        @app.get("/battery")
+        async def get_battery():
+            with self.battery_lock:
+                mv = self.latest_battery_mv
+                timestamp = self.battery_timestamp
+
+            if mv is None:
+                raise HTTPException(status_code=503, detail="Battery data not available yet")
+
+            try:
+                status = get_battery_status_mv(mv)
+            except Exception as e:
+                self.get_logger().error(f"Error computing battery status: {e}")
+                raise HTTPException(status_code=500, detail="Failed to compute battery status")
+
+            return {
+                "voltage_V": status['voltage_V'],
+                "soc": status['soc'],
+                "alarm": status['alarm'],
+                "should_shutdown": status['should_shutdown'],
+                "status": status['status'],
+                "timestamp": timestamp.isoformat() if timestamp else None
             }
 
         # 启动 Uvicorn 服务器
